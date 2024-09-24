@@ -1,84 +1,131 @@
-<!DOCTYPE html >
+<!DOCTYPE html>
 <html lang="es">
- <head> 
-   <title> HTML </title> 
-</head>   
-
-<style type="text/css">
- table, tr, td {
-	border: 1px solid black;
-}
-
-</style> 
+<head>
+    <title>HTML</title>
+    <style type="text/css">
+        table, tr, td {
+            border: 1px solid black;
+        }
+        body {
+            background-image: url('C:/Users/tazma/Downloads/fondohtml.jpg');
+            background-size: cover;
+        }
+        .center {
+            text-align: center;
+        }
+    </style>
+</head>
 
 <body>
+    <div style="display: flex; justify-content: center; align-items: center;">
+        <table>
+            <tr>
+                <td colspan="2" style="background-color: white">
+                    <h2 class="center">LISTA DE COSAS</h2>
+                </td>
+            </tr>
+            <tr>
+                <td><input id="captura" type="text" placeholder="Escribe tu nombre"></td>
+                <td><input type="button" value="Agregar" onclick="agregarFila()"></td>
+            </tr>
+        </table>
+    </div>
 
+    <center>
+        <table id="tabla">
+            <thead>
+                <tr>
+                    <td style="background-color: rgb(228, 50, 118)">No.</td>
+                    <td style="background-color: rgb(238, 40, 116)">Nombre</td>
+                    <td style="background-color: rgb(255, 4, 108)">Acción</td>
+                </tr>
+            </thead>
+            <tbody>
+                <!-- Las filas se agregarán dinámicamente aquí -->
+            </tbody>
+        </table>
+    </center>
 
-<div style="display: flex; justify-content: center;align-items: center;"
-<table>
-<tr>
-<td colspan="2"   style="background-color: white"><h2>Elementos de HTML</h2></td>
-</tr>
-<tr><td><input id="captura" type="text" placeholder="Escribe tu name"></td><td>
-  
-  <input type="button" value="Agregar" onclick="agregarFila()"></td></tr>
+    <!-- Botón para eliminar todos los datos locales -->
+    <center>
+        <button onclick="eliminarDatosLocales()">Eliminar todos los datos</button>
+    </center>
 
-  
+    <script>
+        function saveTableData() {
+            const tableData = [];
+            const rows = document.getElementById("tabla").rows;
+            for (let i = 1; i < rows.length; i++) {  // Iniciar en 1 para omitir el encabezado
+                const row = rows[i];
+                const data = {
+                    elemento: row.cells[0].textContent,
+                    descripcion: row.cells[1].textContent
+                };
+                tableData.push(data);
+            }
+            localStorage.setItem("tableData", JSON.stringify(tableData));
+        }
 
-</table>
-</div>
-<center>
-  <table id="tabla">
-    <tr>
-    <td   style="background-color: white ">filauno</td>
-    <td   style="background-color: white ">filados</td>
-    </tr>
-    <tr>
-      <td   style="background-color: white">1</td>
-      <td id="ejemplo"  style="background-color: white">2</td>
-    </tr>
-    </table>
-</center>
-<script>
-  function mostrarNombre() {
-      
-      let inputNombre = document.getElementById("captura");
-      
-      let nombre = inputNombre.value;
-      
-      document.getElementById("ejemplo").innerHTML=nombre;  
-  } 
-</script>
-<script>
-  function agregarFila() {
-    let nombre = document.getElementById("captura").value;
+        function loadTableData() {
+            const savedData = localStorage.getItem("tableData");
+            if (savedData) {
+                const tableData = JSON.parse(savedData);
+                const tableBody = document.getElementById("tabla").querySelector('tbody'); 
+                
+                // Limpiar la tabla antes de agregar las filas
+                tableBody.innerHTML = '';
 
-  var tabla = document.getElementById("tabla");
-  
-  var nuevaFila = tabla.insertRow(-1);
-  
-  var celda1 = nuevaFila.insertCell(0);
-  var celda2 = nuevaFila.insertCell(1);
-  var celda3 = nuevaFila.insertCell(2);
-  
-  var numeroFilas = tabla.rows.length;
+                // Agregar las filas de los datos guardados
+                tableData.forEach(data => {
+                    const newRow = tableBody.insertRow();
+                    const cell1 = newRow.insertCell();
+                    const cell2 = newRow.insertCell();
+                    const cell3 = newRow.insertCell();
+                    cell1.textContent = data.elemento;
+                    cell2.textContent = data.descripcion;
+                    cell3.innerHTML = '<button onclick="eliminarFila(this)">Eliminar</button>';
+                });
+            }
+        }
 
-  celda1.textContent = numeroFilas;
-  celda2.textContent = nombre;
-   
-   var botonEliminar = document.createElement("button");
-    botonEliminar.textContent = "Eliminar";
-    
-    botonEliminar.onclick = function() {
-        this.parentNode.parentNode.remove();
-    };
+        function agregarFila() {
+            const nombre = document.getElementById("captura").value;
+            const nombreSinEspacios = nombre.trim();
 
-    celda3.appendChild(botonEliminar);
-  }
+            if (nombreSinEspacios === "") {
+                alert("Por favor, ingresa un valor valido.");
+                return;
+            }
 
-  
+            const table = document.getElementById("tabla");
+            const newRow = table.insertRow(-1);
+            const noCell = newRow.insertCell(0);
+            const nombreCell = newRow.insertCell(1);
+            const accionCell = newRow.insertCell(2);
+            
+            noCell.textContent = table.rows.length - 1; // Restar 2 para evitar contar el encabezado
+            nombreCell.textContent = nombre;
+            accionCell.innerHTML = '<button onclick="eliminarFila(this)">Eliminar</button>';
 
-</script>
+            saveTableData();
+            document.getElementById("captura").value = ""; // Limpiar el input
+        }
+
+        function eliminarFila(button) {
+            button.parentNode.parentNode.remove();
+            saveTableData();
+        }
+
+        function eliminarDatosLocales() {
+            if (window.confirm('¿Estás seguro de que deseas eliminar todos los datos locales de este sitio?')) {
+                localStorage.clear();
+                alert('Datos eliminados correctamente');
+                location.reload(); // Recargar la página para reflejar los cambios
+            }
+        }
+
+        // Cargar los datos guardados al iniciar la página
+        window.onload = loadTableData;
+    </script>
 </body>
-
 </html>
